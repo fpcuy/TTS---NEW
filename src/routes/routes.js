@@ -6,6 +6,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // Import controllers
 const { getShipments, importExcel, getDashboard } = require('../controllers/shipmentController');
+const { getProducts } = require('../controllers/productController');
 const {
     getCustomerServices,
     createCS,
@@ -59,5 +60,13 @@ router.post('/customer-service/create', createCS);
 router.get('/customer-service/edit/:id', getEditForm);
 router.post('/customer-service/update', updateCS);
 router.post('/customer-service/delete', deleteCS);
+
+// ============================================
+// PRODUCT ROUTES
+// ============================================ 
+
+router.get('/products', getProducts);
+
+// ============================================ 
 
 module.exports = router;

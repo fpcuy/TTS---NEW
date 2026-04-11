@@ -34,19 +34,21 @@ function cleanAndFormatData(rows) {
 	return rows.map(row => {
 		const cleaned = {};
 		for (const key in row) {
+			const cleanKey = key.trim();
 			let value = row[key];
+			
 			if (typeof value === 'string' && value.trim() === '-') {
 				value = null;
 			}
-			// Format time fields to ISO 8601 if possible
-			if (key.toLowerCase().includes('time') && value) {
-				// Try to parse as date
+
+			// Format time fields or Date objects to ISO string
+			if ((cleanKey.toLowerCase().includes('time') || value instanceof Date) && value) {
 				const date = new Date(value);
-				if (!isNaN(date)) {
+				if (!isNaN(date.getTime())) {
 					value = date.toISOString();
 				}
 			}
-			cleaned[key] = value;
+			cleaned[cleanKey] = typeof value === 'string' ? value.trim() : value;
 		}
 		return cleaned;
 	});

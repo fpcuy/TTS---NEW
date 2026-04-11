@@ -9,24 +9,24 @@ const importExcel = async (req, res) => {
       return res.status(400).send('No file uploaded');
     }
     // Read Excel file
-    const workbook = XLSX.readFile(req.file.path);
+    const workbook = XLSX.readFile(req.file.path, { cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    let rows = XLSX.utils.sheet_to_json(sheet, { range: 1, defval: null });
+    let rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
+    
+    if (rows.length === 0) {
+      throw new Error('File Excel kosong atau tidak valid');
+    }
+
     // Clean data
     rows = cleanAndFormatData(rows);
-    // Tampilkan data pada terminal (console.log)
-    console.log('Imported rows:', JSON.stringify(rows, null, 2));
+
     // Insert to DB
-    // Menggunakan upsert agar jika data sudah ada (berdasarkan Tracking No) akan diupdate, bukan error
     const { error: insertError } = await db.from('shipments').upsert(rows, { onConflict: 'Tracking No' });
     
-    // Hapus file segera setelah diproses (agar tidak menumpuk di server)
-    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-
     if (insertError) throw insertError;
-
-    // Fetch updated data with agent enrichment
+    
+    // Ambil data terbaru untuk ditampilkan setelah import sukses
     const enrichedShipments = await getShipmentsWithAgent();
     
     res.render('index', { shipments: enrichedShipments, pageTitle: 'Shipment Dashboard', importPreview: rows, error: null });
@@ -41,6 +41,11 @@ const importExcel = async (req, res) => {
       pageTitle: 'Shipment Dashboard', 
       error: 'Gagal mengimpor data: ' + error.message 
     });
+  } finally {
+    // Hapus file segera setelah diproses (agar tidak menumpuk di server)
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
   }
 };
 
