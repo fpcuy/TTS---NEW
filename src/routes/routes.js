@@ -1,0 +1,63 @@
+const express = require('express');
+const router = express.Router();
+
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+
+// Import controllers
+const { getShipments, importExcel, getDashboard } = require('../controllers/shipmentController');
+const {
+    getCustomerServices,
+    createCS,
+    updateCS,
+    deleteCS,
+    getEditForm,
+} = require('../controllers/customerServiceController');
+
+// ============================================
+// AUTH ROUTES
+// ============================================
+
+router.get('/login', (req, res) => {
+    console.log('GET /login - rendering login page');
+    res.render('login', { error: null });
+});
+
+router.post('/login', (req, res) => {
+    const { email, password, remember } = req.body;
+    console.log('POST /login - email:', email);
+    
+    if (email === 'admin' && password === 'admin123') {
+        req.session = { userId: 'admin', email: email };
+        console.log('Login successful');
+        res.redirect('/');
+    } else {
+        console.log('Login failed - wrong credentials');
+        res.render('login', { error: 'Email atau password salah' });
+    }
+});
+
+router.get('/logout', (req, res) => {
+    req.session = null;
+    res.redirect('/login');
+});
+
+// ============================================
+// SHIPMENT ROUTES
+// ============================================
+
+router.get('/', getShipments);
+router.get('/dashboard', getDashboard);
+router.post('/shipments/import', upload.single('excelFile'), importExcel);
+
+// ============================================
+// CUSTOMER SERVICE ROUTES
+// ============================================
+
+router.get('/customer-service', getCustomerServices);
+router.post('/customer-service/create', createCS);
+router.get('/customer-service/edit/:id', getEditForm);
+router.post('/customer-service/update', updateCS);
+router.post('/customer-service/delete', deleteCS);
+
+module.exports = router;

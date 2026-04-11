@@ -5,16 +5,492 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shipments</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Flatpickr Date Picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body class="bg-gray-50 flex min-h-screen">
     <%- include('partials/sidebar') %>
 
     <!-- Main Content -->
     <main class="flex-1 lg:ml-64 xl:ml-72 flex flex-col">
-        <%- include('partials/header', { pageTitle: pageTitle }) %>
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-primary-50 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 leading-tight">Shipments</h1>
+                        <p class="text-xs text-gray-500">Manajemen data ekspedisi & logistik</p>
+                    </div>
+                </div>
+                <!-- Form Impor Excel (Style FinKami) -->
+                <div class="flex items-center gap-2">
+                    <button id="importBtn" type="button" class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-600">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                            <path d="M14 2v6h6"/>
+                            <path d="M12 11v6"/>
+                            <path d="M9 14h6"/>
+                        </svg>
+                        Import Excel
+                    </button>
+                    <button type="button" class="bg-green-600 hover:bg-green-700 text-white h-9 px-4 rounded-md text-xs font-medium shadow-sm transition-colors flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Tambah Manual
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Upload Modal (UI-only) -->
+        <div id="uploadModal" class="hidden fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4">
+            <div class="w-full max-w-lg rounded-xl bg-white shadow-lg border border-gray-200">
+                <div class="flex justify-between items-center border-b border-gray-200 px-5 py-4 bg-slate-50">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                                <path d="M14 2v6h6"/>
+                                <path d="M16 13H8"/>
+                                <path d="M16 17H8"/>
+                                <path d="M10 9H8"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900">Import File Excel</h3>
+                            <p class="text-xs text-gray-500">Unggah file ekspor pesanan dari marketplace</p>
+                        </div>
+                    </div>
+                    <button id="closeModal" class="rounded-md border border-gray-300 px-2 py-1 text-gray-500 hover:bg-gray-100 transition-colors">✕</button>
+                </div>
+                <div class="px-5 py-6">
+                    <form action="/shipments/import" method="POST" enctype="multipart/form-data">
+                        <div class="relative">
+                            <input type="file" name="excelFile" id="fileInput" accept=".xlsx,.xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" required>
+                            <div class="rounded-lg border-2 border-dashed border-gray-300 bg-slate-50 p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-3 h-10 w-10 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                                    <path d="M7 10l5-5 5 5"/>
+                                    <path d="M12 5v10"/>
+                                </svg>
+                                <p class="text-sm font-medium text-slate-700 mb-1">Klik untuk mengunggah atau seret dan lepas</p>
+                                <p class="text-xs text-slate-400">File Excel (.xlsx, .xls) - Maksimal 10MB</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex gap-3">
+                            <button type="submit" class="flex-1 rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors shadow-sm">Proses File</button>
+                            <button type="button" id="resetUpload" class="flex-1 rounded-lg border border-red-200 bg-red-50 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors">Hapus Semua</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Filter Modal (UI-only) -->
+        <div id="filterModal" class="hidden fixed z-[9999] bg-black/40 inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-xl" style="width: 520px;">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-slate-50 rounded-t-xl">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                                <path d="M4 4h16"/>
+                                <path d="M7 12h10"/>
+                                <path d="M10 20h4"/>
+                                <path d="M5 6l7 8 7-8"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900">Filter Transaksi</h3>
+                            <p class="text-xs text-gray-500">Pilih rentang tanggal dan filter data</p>
+                        </div>
+                    </div>
+                    <button id="closeFilterModal" class="rounded-md border border-gray-300 px-2 py-1 text-gray-500 hover:bg-gray-100 transition-colors">✕</button>
+                </div>
+
+                <!-- Content -->
+                <div class="p-5">
+                    <!-- Quick Filters -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Filter Cepat</h4>
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="button" class="px-3 py-1.5 text-xs font-medium bg-gray-50 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 rounded-md transition-all">7 Hari</button>
+                            <button type="button" class="px-3 py-1.5 text-xs font-medium bg-gray-50 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 rounded-md transition-all">14 Hari</button>
+                            <button type="button" class="px-3 py-1.5 text-xs font-medium bg-gray-50 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 rounded-md transition-all">30 Hari</button>
+                            <button type="button" class="px-3 py-1.5 text-xs font-medium bg-gray-50 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 rounded-md transition-all">45 Hari</button>
+                        </div>
+                    </div>
+
+                    <!-- Date Range Picker -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Pilih Rentang Tanggal</h4>
+                        <div class="relative">
+                            <input type="text" id="dateRangePicker" placeholder="Pilih rentang tanggal..."
+                                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-400">
+                                    <path d="M8 2v4"/>
+                                    <path d="M16 2v4"/>
+                                    <rect width="18" height="18" x="3" y="4" rx="2"/>
+                                    <path d="M3 10h18"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Klik untuk memilih rentang tanggal (maksimal 366 hari)</p>
+                    </div>
+
+                    <!-- Additional Filters -->
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Filter Tambahan</h4>
+                        <div class="grid gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Platform</label>
+                                <select class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option>Semua Platform</option>
+                                    <option>Shopee</option>
+                                    <option>Tokopedia</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                                <select class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option>Semua Status</option>
+                                    <option>Delivered</option>
+                                    <option>In Transit</option>
+                                    <option>Cancel</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Cari Transaksi</label>
+                                <input type="text" placeholder="Masukkan kata kunci..." class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-5 flex gap-3">
+                        <button class="flex-1 rounded-lg bg-blue-500 py-2.5 text-sm font-semibold text-white hover:bg-blue-600 transition-colors shadow-sm">Terapkan Filter</button>
+                        <button class="flex-1 rounded-lg border border-gray-300 bg-white py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-5 py-3 border-t border-gray-200 bg-gray-50 rounded-b-xl flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8 2v4"/>
+                            <path d="M16 2v4"/>
+                            <rect width="18" height="18" x="3" y="4" rx="2"/>
+                            <path d="M3 10h18"/>
+                        </svg>
+                        <span id="dateRangeDisplay">Belum ada tanggal dipilih</span>
+                    </div>
+                    <div class="text-[10px] text-gray-400">Maks 366 hari</div>
+                </div>
+            </div>
+        </div>
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const importBtn = document.getElementById('importBtn');
+                const uploadModal = document.getElementById('uploadModal');
+                const closeModal = document.getElementById('closeModal');
+                const resetUpload = document.getElementById('resetUpload');
+                const fileInput = document.getElementById('fileInput');
+                const uploadArea = uploadModal.querySelector('.rounded-lg');
+
+                // Modal controls
+                if (importBtn && uploadModal) {
+                    importBtn.addEventListener('click', () => uploadModal.classList.remove('hidden'));
+                }
+                if (closeModal && uploadModal) {
+                    closeModal.addEventListener('click', () => uploadModal.classList.add('hidden'));
+                }
+                if (uploadModal) {
+                    uploadModal.addEventListener('click', (event) => {
+                        if (event.target === uploadModal) uploadModal.classList.add('hidden');
+                    });
+                }
+
+                // File upload functionality
+                if (fileInput && uploadArea) {
+                    // Click handled by input itself due to absolute inset-0
+                    // uploadArea.addEventListener('click', () => fileInput.click()); 
+
+                    // Drag and drop
+                    uploadArea.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        uploadArea.classList.add('border-blue-500', 'bg-blue-50');
+                    });
+
+                    uploadArea.addEventListener('dragleave', () => {
+                        uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+                    });
+
+                    uploadArea.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        uploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+                        const files = e.dataTransfer.files;
+                        if (files.length > 0) {
+                            fileInput.files = files; // PENTING: Masukkan file ke input form
+                            handleFileSelect(files[0]);
+                        }
+                    });
+
+                    // File input change
+                    fileInput.addEventListener('change', (e) => {
+                        if (e.target.files.length > 0) {
+                            handleFileSelect(e.target.files[0]);
+                        }
+                    });
+                }
+
+                function handleFileSelect(file) {
+                    const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+                    const maxSize = 10 * 1024 * 1024; // 10MB
+
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('Format file tidak didukung. Harap unggah file Excel (.xlsx atau .xls)');
+                        return;
+                    }
+
+                    if (file.size > maxSize) {
+                        alert('Ukuran file terlalu besar. Maksimal 10MB');
+                        return;
+                    }
+
+                    // Update UI to show selected file
+                    const uploadText = uploadArea.querySelector('p');
+                    uploadText.textContent = `File dipilih: ${file.name}`;
+                    uploadText.classList.add('text-blue-600', 'font-semibold');
+                }
+
+                // Loading state on submit
+                const uploadForm = uploadModal.querySelector('form');
+                uploadForm.addEventListener('submit', () => {
+                    const submitBtn = uploadForm.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...</span>';
+                });
+
+                if (resetUpload) {
+                    resetUpload.addEventListener('click', () => {
+                        if (fileInput) fileInput.value = '';
+                        const uploadText = uploadArea.querySelector('p');
+                        uploadText.textContent = 'Klik untuk mengunggah atau seret dan lepas';
+                        uploadText.classList.remove('text-blue-600', 'font-semibold');
+                        alert('File dihapus (logika pending)');
+                    });
+                }
+
+                // Filter modal controls
+                const openFilterModal = document.getElementById('openFilterModal');
+                const filterModal = document.getElementById('filterModal');
+                const closeFilterModal = document.getElementById('closeFilterModal');
+                const dateRangePicker = document.getElementById('dateRangePicker');
+                const dateRangeDisplay = document.getElementById('dateRangeDisplay');
+
+                // Initialize Flatpickr
+                let flatpickrInstance = null;
+
+                if (dateRangePicker) {
+                    flatpickrInstance = flatpickr(dateRangePicker, {
+                        mode: "range",
+                        dateFormat: "d M Y",
+                        maxDate: new Date().fp_incr(366), // Max 366 days from today
+                        minDate: new Date().fp_incr(-365), // Min 365 days ago
+                        locale: {
+                            firstDayOfWeek: 1, // Monday
+                            weekdays: {
+                                shorthand: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                                longhand: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+                            },
+                            months: {
+                                shorthand: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+                                longhand: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+                            }
+                        },
+                        onChange: function(selectedDates, dateStr, instance) {
+                            if (selectedDates.length === 2) {
+                                const startDate = selectedDates[0];
+                                const endDate = selectedDates[1];
+                                const diffTime = Math.abs(endDate - startDate);
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                                const startFormatted = instance.formatDate(startDate, "d M Y");
+                                const endFormatted = instance.formatDate(endDate, "d M Y");
+
+                                dateRangeDisplay.textContent = `${startFormatted} – ${endFormatted} (${diffDays} hari)`;
+                            }
+                        },
+                        onClose: function(selectedDates, dateStr, instance) {
+                            if (selectedDates.length < 2) {
+                                dateRangeDisplay.textContent = "Belum ada tanggal dipilih";
+                            }
+                        }
+                    });
+                }
+
+                if (openFilterModal && filterModal) {
+                    openFilterModal.addEventListener('click', () => filterModal.classList.remove('hidden'));
+                }
+                if (closeFilterModal && filterModal) {
+                    closeFilterModal.addEventListener('click', () => filterModal.classList.add('hidden'));
+                }
+                // Quick filter buttons
+                const quickFilterButtons = filterModal.querySelectorAll('[class*="px-3 py-1.5"]');
+                quickFilterButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const days = parseInt(button.textContent.split(' ')[0]);
+                        const endDate = new Date();
+                        const startDate = new Date();
+                        startDate.setDate(endDate.getDate() - days + 1);
+
+                        if (flatpickrInstance) {
+                            flatpickrInstance.setDate([startDate, endDate]);
+
+                            const startFormatted = flatpickrInstance.formatDate(startDate, "d M Y");
+                            const endFormatted = flatpickrInstance.formatDate(endDate, "d M Y");
+
+                            dateRangeDisplay.textContent = `${startFormatted} – ${endFormatted} (${days} hari)`;
+                        }
+                    });
+                });
+            });
+        </script>
+
+        <!-- Stats Sync Panel + Filter Trigger -->
+        <div class="bg-emerald-50 border-b border-emerald-200 px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-emerald-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>
+                <span class="text-xs font-medium">Terhubung ke Database Utama</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="openFilterModal" class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16"/><path d="M7 12h10"/><path d="M10 20h4"/><path d="M5 6l7 8 7-8"/></svg>
+                    Filter
+                </button>
+            </div>
+        </div>
 
         <!-- Main Table Container -->
         <div class="p-6 flex-1">
+            <!-- Notifikasi Error -->
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-red-100 p-2 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-red-800">Gagal Memproses!</p>
+                            <p class="text-xs text-red-600"><%= error %></p>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Notifikasi Sukses Import -->
+            <% if (typeof importPreview !== 'undefined' && importPreview.length > 0) { %>
+                <div class="mb-6 bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-emerald-100 p-2 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-emerald-800">Import Berhasil!</p>
+                            <p class="text-xs text-emerald-600">Berhasil menambahkan <span class="font-bold"><%= importPreview.length %></span> baris data ke database.</p>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Dashboard Overview -->
+            <div class="mb-6">
+                <div class="mb-4">
+                    <div class="flex items-center px-3 mb-2">
+                        <div class="h-px bg-gray-300 flex-1"></div>
+                        <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wider px-2">Dashboard Overview</h3>
+                        <div class="h-px bg-gray-300 flex-1"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <!-- Total Shipments -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Shipments</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1"><%= shipments.length %></p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                                    <path d="M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
+                                    <path d="M8 7V5h8v2"/>
+                                    <path d="M8 13h8"/>
+                                    <path d="M8 17h8"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total COD Amount -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total COD</p>
+                                <p class="text-xl font-bold text-gray-900 mt-1">Rp<%= shipments.reduce((sum, item) => sum + (item['COD Amount'] || 0), 0).toLocaleString('id-ID') %></p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivered Shipments -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Delivered</p>
+                                <p class="text-2xl font-bold text-emerald-600 mt-1"><%= shipments.filter(item => item['Tracking Status'] === 'Delivered').length %></p>
+                            </div>
+                            <div class="bg-emerald-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    <polyline points="22,4 12,14.01 9,11.01"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending/In Transit -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">In Transit</p>
+                                <p class="text-2xl font-bold text-orange-600 mt-1"><%= shipments.filter(item => item['Tracking Status'] !== 'Delivered' && !item['Tracking Status']?.includes('Cancel')).length %></p>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+                                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                                    <path d="M21 3v5h-5"/>
+                                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                                    <path d="M8 16H3v5"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -22,8 +498,10 @@
                             <tr>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tracking No</th>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Penerima</th>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Berat</th>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Ongkir</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Produk</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">ID CS</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Nama CS</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">COD</th>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Status</th>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Aksi</th>
                             </tr>
@@ -32,17 +510,23 @@
                             <% shipments.forEach(item => { %>
                             <tr class="hover:bg-gray-50/80 transition-colors group">
                                 <td class="px-4 py-3">
-                                    <a href="<%= item['Tracking No link'] %>" target="_blank" class="text-xs font-bold text-blue-600 leading-none mb-1 hover:underline"><%= item['Tracking No'] %> </a><i class="fas fa-external-link-alt"></i>
+                                    <a href="<%= item['Tracking No link'] %>" target="_blank" class="text-xs font-bold text-blue-600 leading-none mb-1 hover:underline"><%= item['Tracking No'] %></a>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="text-xs font-semibold text-gray-800"><%= item['Recipient Name'] %></div>
-                                    <div class="text-[10px] text-gray-500 truncate max-w-[150px]"><%= item['Recipient City'] %></div>
+                                    <div class="text-[10px] text-gray-500 truncate max-w-[150px]"><%= item['Recipient Phone Number'] %></div>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <div class="text-xs text-gray-700 font-mono"><%= item['Parcel Weight'] %> kg</div>
+                                    <div class="text-xs text-gray-700 font-mono"><%= item['Item in Parcel'] %></div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="text-xs font-semibold text-gray-700"><%= item._idCS || '-' %></div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="text-xs font-medium text-gray-700"><%= item._agentName %></div>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <div class="text-xs font-bold text-gray-900 italic">Rp<%= item['Estimated Shipping Fee']?.toLocaleString('id-ID') %></div>
+                                    <div class="text-xs font-bold text-gray-900 italic">Rp<%= item['COD Amount']?.toLocaleString('id-ID') %></div>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <% 
@@ -84,77 +568,5 @@
             <%- include('partials/footer') %>
         </div>
     </main>
-
-    <!-- Upload Modal -->
-    <div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <div class="bg-blue-100 p-2 rounded-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#2563eb" stroke-width="2"><rect width="20" height="20" x="2" y="2" rx="4"/><path d="M8 10h8M8 14h5"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold text-gray-900">File Pesanan</h3>
-                            <p class="text-xs text-gray-500">Unggah file ekspor pesanan Anda</p>
-                        </div>
-                    </div>
-                </div>
-                <button onclick="closeUploadModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <form id="excelUploadForm" action="http://localhost:3211/upload" method="POST" enctype="multipart/form-data">
-                <div id="dropzone" class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 py-8 px-4 mb-6 cursor-pointer transition hover:border-orange-400 hover:bg-orange-50 text-center relative" onclick="document.getElementById('excelFileInput').click()" ondragover="event.preventDefault(); this.classList.add('border-orange-400','bg-orange-50')" ondragleave="this.classList.remove('border-orange-400','bg-orange-50')" ondrop="handleDrop(event)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" stroke-width="1.5" class="mx-auto mb-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L8 8m4-4 4 4"/><rect width="20" height="12" x="2" y="12" rx="2"/></svg>
-                    <span class="block font-semibold text-gray-700 mb-1">Klik untuk mengunggah <span class="font-normal text-gray-400">atau seret dan lepas</span></span>
-                    <span class="text-xs text-gray-400">File Excel (.xlsx, .xls)</span>
-                    <input id="excelFileInput" type="file" name="excel_file" accept=".xlsx, .xls" required class="hidden" onchange="updateFileName()">
-                    <span id="fileNameDisplay" class="block mt-2 text-xs text-green-600 font-medium"></span>
-                </div>
-                <div class="flex justify-end gap-2 mt-2">
-                    <button type="button" onclick="resetUploadForm()" class="flex items-center gap-1 px-4 py-2 text-sm font-medium text-red-600 border border-red-200 bg-white hover:bg-red-50 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                        Hapus Semua
-                    </button>
-                    <button type="submit" class="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-orange-400 hover:bg-orange-500 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 16v-8m0 0-4 4m4-4 4 4"/><rect width="20" height="12" x="2" y="12" rx="2"/></svg>
-                        Proses File
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        function openUploadModal() {
-            document.getElementById('uploadModal').classList.remove('hidden');
-        }
-        function closeUploadModal() {
-            document.getElementById('uploadModal').classList.add('hidden');
-        }
-        function updateFileName() {
-            const input = document.getElementById('excelFileInput');
-            const display = document.getElementById('fileNameDisplay');
-            if (input.files.length > 0) {
-                display.textContent = input.files[0].name;
-            } else {
-                display.textContent = '';
-            }
-        }
-        function resetUploadForm() {
-            document.getElementById('excelFileInput').value = '';
-            document.getElementById('fileNameDisplay').textContent = '';
-        }
-        function handleDrop(event) {
-            event.preventDefault();
-            const input = document.getElementById('excelFileInput');
-            if (event.dataTransfer.files.length > 0) {
-                input.files = event.dataTransfer.files;
-                updateFileName();
-            }
-            document.getElementById('dropzone').classList.remove('border-orange-400','bg-orange-50');
-        }
-    </script>
 </body>
 </html>

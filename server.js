@@ -10,8 +10,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Import routes
-const shipmentRoutes = require('./src/routes/shipmentRoutes');
-app.use('/', shipmentRoutes);
+const routes = require('./src/routes/routes');
+app.use('/', routes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
