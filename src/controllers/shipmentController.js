@@ -1,7 +1,9 @@
 const db = require('../config/database');
 const XLSX = require('xlsx');
 const fs = require('fs');
-const { cleanAndFormatData, getShipmentsWithAgent } = require('../models/shipmentModel');
+const { getShipmentsWithAgent, insertShipments, getGlobalStats } = require('../models/shipmentModel');
+const { cleanAndFormatData } = require('../utils/formatters');
+
 // Import Excel handler
 const importExcel = async (req, res) => {
   try {
@@ -12,47 +14,104 @@ const importExcel = async (req, res) => {
     const workbook = XLSX.readFile(req.file.path, { cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    let rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
+    
+    // Skip baris pertama (header laporan) dengan opsi range: 1
+    let rows = XLSX.utils.sheet_to_json(sheet, { defval: null, range: 1 });
     
     if (rows.length === 0) {
       throw new Error('File Excel kosong atau tidak valid');
     }
-
-    // Clean data
+    // Bersihkan dan format data
     rows = cleanAndFormatData(rows);
 
-    // Insert to DB
-    const { error: insertError } = await db.from('shipments').upsert(rows, { onConflict: 'Tracking No' });
-    
-    if (insertError) throw insertError;
-    
-    // Ambil data terbaru untuk ditampilkan setelah import sukses
-    const enrichedShipments = await getShipmentsWithAgent();
-    
-    res.render('index', { shipments: enrichedShipments, pageTitle: 'Shipment Dashboard', importPreview: rows, error: null });
+    // Alih-alih langsung insert, kita kirim ke Preview Modal sesuai UI di index.ejs
+    const page = 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const { enriched: shipments, count } = await getShipmentsWithAgent(page, limit);
+    const stats = await getGlobalStats();
+
+    res.render('index', { 
+      shipments, 
+      stats, 
+      currentPage: page, 
+      currentLimit: limit,
+      totalPages: Math.ceil(count / limit), 
+      pageTitle: 'Shipment Dashboard',
+      importPreview: rows, // Data untuk modal preview
+      showPreviewModal: true // Aktifkan modal preview
+    });
   } catch (error) {
+    // Log error di redirect ke controller getshipments agar user tetap melihat dashboard meskipun import gagal
     console.error('Import error:', error.message);
-    
-    // Fetch shipments with agent enrichment
-    const enrichedShipments = await getShipmentsWithAgent();
+
+    const page = 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const { enriched: shipments, count } = await getShipmentsWithAgent(page, limit);
+    const stats = await getGlobalStats();
+
     
     res.render('index', { 
-      shipments: enrichedShipments || [], 
+      shipments, 
+      stats, 
+      currentPage: page, 
+      currentLimit: limit,
+      totalPages: Math.ceil(count / limit), 
       pageTitle: 'Shipment Dashboard', 
-      error: 'Gagal mengimpor data: ' + error.message 
+      error: 'Gagal mengimpor data: ' + error.message,
+      importPreview: [],
+      showPreviewModal: false
     });
   } finally {
-    // Hapus file segera setelah diproses (agar tidak menumpuk di server)
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    // Hapus file yang di-upload setelah diproses
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting uploaded file:', err);
+      });
     }
+  }
+};
+
+// Handler untuk eksekusi final import setelah user klik "Confirm"
+const confirmImport = async (req, res) => {
+  try {
+    const { shipmentData } = req.body;
+    if (!shipmentData) {
+      throw new Error('Tidak ada data untuk di-import');
+    }
+
+    const rows = JSON.parse(shipmentData);
+    
+    // Insert ke Database
+    await insertShipments(rows);
+
+    res.redirect('/?success=Data berhasil di-import ke database');
+  } catch (error) {
+    console.error('Confirmation error:', error.message);
+    res.redirect('/?error=Gagal menyimpan data');
   }
 };
 
 const getShipments = async (req, res) => {
   try {
-    const enrichedShipments = await getShipmentsWithAgent();
-    res.render('index', { shipments: enrichedShipments, pageTitle: 'Shipment Dashboard' });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50; // Ambil limit dari query atau default 50
+
+    const { enriched: shipments, count } = await getShipmentsWithAgent(page, limit);
+    const stats = await getGlobalStats();
+
+    // Log data yang akan ditampilkan di dashboard
+    console.log('Stats:', stats);
+    
+    res.render('index', { 
+      shipments, 
+      stats,
+      currentPage: page,
+      currentLimit: limit,
+      totalPages: Math.ceil(count / limit),
+      pageTitle: 'Shipment Dashboard',
+      importPreview: [],
+      showPreviewModal: false
+    });
   } catch (error) {
     console.error('Error fetching data:', error.message);
     res.status(500).send('Internal Server Error');
@@ -61,12 +120,13 @@ const getShipments = async (req, res) => {
 
 const getDashboard = async (req, res) => {
   try {
-    const enrichedShipments = await getShipmentsWithAgent();
-    res.render('dashboard', { shipments: enrichedShipments, pageTitle: 'Dashboard' });
+    const { enriched: shipments } = await getShipmentsWithAgent(1, 10);
+    const stats = await getGlobalStats();
+    res.render('dashboard', { shipments, stats, pageTitle: 'Dashboard' });
   } catch (error) {
     console.error('Error fetching dashboard data:', error.message);
     res.status(500).send('Internal Server Error');
   }
 };
 
-module.exports = { getShipments, importExcel, getDashboard };
+module.exports = { getShipments, importExcel, getDashboard, confirmImport };

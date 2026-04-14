@@ -5,7 +5,7 @@ const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 
 // Import controllers
-const { getShipments, importExcel, getDashboard } = require('../controllers/shipmentController');
+const { getShipments, importExcel, getDashboard, confirmImport } = require('../controllers/shipmentController');
 const { getProducts } = require('../controllers/productController');
 const {
     getCustomerServices,
@@ -14,6 +14,7 @@ const {
     deleteCS,
     getEditForm,
 } = require('../controllers/customerServiceController');
+const { getdebugImportPage, debugImport } = require('../controllers/debugController');
 
 // ============================================
 // AUTH ROUTES
@@ -50,6 +51,7 @@ router.get('/logout', (req, res) => {
 router.get('/', getShipments);
 router.get('/dashboard', getDashboard);
 router.post('/shipments/import', upload.single('excelFile'), importExcel);
+router.post('/shipments/confirm', confirmImport);
 
 // ============================================
 // CUSTOMER SERVICE ROUTES
@@ -68,5 +70,9 @@ router.post('/customer-service/delete', deleteCS);
 router.get('/products', getProducts);
 
 // ============================================ 
+// DEBUG ROUTES
+// ============================================
+router.get('/import-debug', getdebugImportPage);
+router.post('/import-debug', upload.single('excelFile'), debugImport);
 
 module.exports = router;

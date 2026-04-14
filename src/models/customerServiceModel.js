@@ -83,10 +83,27 @@ const deleteCustomerService = async (id) => {
     }
 };
 
+// Fetch performance statistics from view
+const getCSPerformance = async () => {
+    try {
+        const { data, error } = await db
+            .from('performa_cs')
+            .select('*')
+            .order('total_shipments', { ascending: false });
+        
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error fetching CS performance:', error.message);
+        throw error;
+    }
+};
+
 module.exports = {
     getAllCustomerService,
     getCustomerServiceById,
     createCustomerService,
     updateCustomerService,
     deleteCustomerService,
+    getCSPerformance,
 };
