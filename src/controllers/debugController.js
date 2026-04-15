@@ -1,14 +1,13 @@
 const XLSX = require('xlsx');
 const fs = require('fs');
 const { fetchAndStoreProducts } = require('../models/productModel');
-const { getProductlist } = require('../models/shipmentModel');
 
 // Tampilan halaman debug untuk import Excel
 const getdebugImportPage = (req, res) => {
     // ambil data dari shipmnent hanya Item In Parcel nya saja lalu distinct untuk ditampilkan di dropdown filter di debug-import.ejs
     fetchAndStoreProducts().then((data) => {
         //tampilin di console untuk memastikan data sudah benar sebelum dirender ke halaman debug-import.ejs
-        console.log('DEBUG: Product list for filter:', JSON.stringify(data, null, 2));
+        console.log('DEBUG: Product list for filter:', JSON.stringify(data, null, 1));
         res.render('debug-import', { importedData: data, pageTitle: 'Debug Import', error: null });
     }).catch((error) => {
         console.error('Error fetching product list:', error.message);

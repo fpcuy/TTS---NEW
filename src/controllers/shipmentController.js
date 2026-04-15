@@ -24,43 +24,20 @@ const importExcel = async (req, res) => {
     // Bersihkan dan format data
     rows = cleanAndFormatData(rows);
 
-    // Alih-alih langsung insert, kita kirim ke Preview Modal sesuai UI di index.ejs
-    const page = 1;
-    const limit = parseInt(req.query.limit) || 50;
-    const { enriched: shipments, count } = await getShipmentsWithAgent(page, limit);
-    const stats = await getGlobalStats();
-
-    res.render('index', { 
-      shipments, 
-      stats, 
-      currentPage: page, 
-      currentLimit: limit,
-      totalPages: Math.ceil(count / limit), 
-      pageTitle: 'Shipment Dashboard',
-      importPreview: rows, // Data untuk modal preview
-      showPreviewModal: true // Aktifkan modal preview
-    });
-  } catch (error) {
-    // Log error di redirect ke controller getshipments agar user tetap melihat dashboard meskipun import gagal
-    console.error('Import error:', error.message);
-
-    const page = 1;
-    const limit = parseInt(req.query.limit) || 50;
-    const { enriched: shipments, count } = await getShipmentsWithAgent(page, limit);
-    const stats = await getGlobalStats();
-
+    const CHUNK_SIZE = 500;
+    console.log(`Memulai proses import otomatis total ${rows.length} data...`);
     
-    res.render('index', { 
-      shipments, 
-      stats, 
-      currentPage: page, 
-      currentLimit: limit,
-      totalPages: Math.ceil(count / limit), 
-      pageTitle: 'Shipment Dashboard', 
-      error: 'Gagal mengimpor data: ' + error.message,
-      importPreview: [],
-      showPreviewModal: false
-    });
+    // Langsung eksekusi insert tanpa modal konfirmasi
+    for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
+      const chunk = rows.slice(i, i + CHUNK_SIZE);
+      await insertShipments(chunk);
+      console.log(`Batch ${Math.floor(i / CHUNK_SIZE) + 1} berhasil di-insert (${chunk.length} baris)`);
+    }
+
+    res.redirect(`/?success=${rows.length} data berhasil di-import ke database`);
+  } catch (error) {
+    console.error('Import error:', error.message);
+    res.redirect('/?error=' + encodeURIComponent('Gagal mengimpor data: ' + error.message));
   } finally {
     // Hapus file yang di-upload setelah diproses
     if (req.file) {
@@ -68,26 +45,6 @@ const importExcel = async (req, res) => {
         if (err) console.error('Error deleting uploaded file:', err);
       });
     }
-  }
-};
-
-// Handler untuk eksekusi final import setelah user klik "Confirm"
-const confirmImport = async (req, res) => {
-  try {
-    const { shipmentData } = req.body;
-    if (!shipmentData) {
-      throw new Error('Tidak ada data untuk di-import');
-    }
-
-    const rows = JSON.parse(shipmentData);
-    
-    // Insert ke Database
-    await insertShipments(rows);
-
-    res.redirect('/?success=Data berhasil di-import ke database');
-  } catch (error) {
-    console.error('Confirmation error:', error.message);
-    res.redirect('/?error=Gagal menyimpan data');
   }
 };
 
@@ -129,4 +86,4 @@ const getDashboard = async (req, res) => {
   }
 };
 
-module.exports = { getShipments, importExcel, getDashboard, confirmImport };
+module.exports = { getShipments, importExcel, getDashboard };

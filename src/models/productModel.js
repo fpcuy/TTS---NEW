@@ -4,42 +4,11 @@ const db = require('../config/database');
 const fetchAndStoreProducts = async () => {
 	try {
         const { data, error } = await db
-            .from('combine_shipment_product')
-            .select('*');
-
-        if (error) throw error;
-        return data; // Kembalikan data untuk ditampilkan di debug-import.ejs
-    } catch (error) {
-        console.error('Error fetching and storing products:', error.message);
-        throw error;
-    }
-};
-
-
-const getUniqueItemsModel = async () => {
-    try {
-        // Menggunakan raw string di dalam select
-        const { data, error } = await db
-            .from('shipments')
-            .select(`
-                combined_data:regexp_replace(
-                    TRIM(
-                        SUBSTRING(
-                            "Item in Parcel"
-                            FROM POSITION(' ' IN "Item in Parcel") + ... -- logika panjang Anda
-                        )
-                    ),
-                    ' .$',
-                    ''
-                )
-            `)
-            // Catatan: Supabase client mungkin akan kesulitan memparsing DISTINCT di sini
-            // Anda mungkin harus melakukan filter unik di sisi JavaScript (data.map...)
-        
+            .rpc('get_combined_item_data'); // Panggil fungsi RPC untuk mendapatkan data unik
         if (error) throw error;
         return data;
     } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error fetching products:', error.message);
         throw error;
     }
 };
