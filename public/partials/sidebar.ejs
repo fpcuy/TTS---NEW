@@ -1,8 +1,17 @@
     <!-- Sidebar (Style FinKami) -->
-    <aside class="fixed top-0 left-0 z-50 h-screen bg-gradient-to-b from-orange-500 via-orange-600 to-orange-700 shadow-xl w-64 xl:w-72 hidden lg:block">
+    <aside id="sidebar" class="fixed top-0 left-0 z-40 h-screen bg-gradient-to-b from-orange-500 via-orange-600 to-orange-700 shadow-xl w-64 xl:w-72 
+                 transform -translate-x-full lg:translate-x-0
+                 transition-transform duration-300 ease-in-out">
         <div class="flex h-full flex-col overflow-hidden">
             <div class="flex-shrink-0 flex h-20 items-center px-6">
                 <div class="text-white font-bold text-2xl tracking-tighter">FIN<span class="font-light text-orange-200">KAMI</span></div>
+                <!-- Close button for mobile -->
+                <button id="sidebarCloseButton" class="lg:hidden absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full transition-colors" aria-label="Close Sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
             <div class="flex-1 overflow-y-auto px-3 space-y-1">
                 <div class="mb-3">

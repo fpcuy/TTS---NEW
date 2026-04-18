@@ -94,12 +94,17 @@ const getGlobalStats = async () => {
 
 		return allRows.reduce((acc, curr) => {
 			acc.totalShipments++;
-			acc.totalCOD += Number(curr['COD Amount'] || 0);
 			const status = curr['Tracking Status'];
-			if (status === 'Delivered') acc.delivered++;
-			if (status === 'Returned' || status === 'Returning') acc.retur++;
+			if (status === 'Delivered') {
+				acc.delivered++;
+				acc.totalCOD += Number(curr['COD Amount'] || 0);
+			} else if (status === 'Returned' || status === 'Returning') {
+				acc.retur++;
+			} else {
+				acc.onProcess++;
+			}
 			return acc;
-		}, { totalShipments: 0, totalCOD: 0, delivered: 0, retur: 0 });
+		}, { totalShipments: 0, totalCOD: 0, delivered: 0, retur: 0, onProcess: 0 });
 	} catch (error) {
 		console.error('Error fetching global stats:', error.message);
 		throw error;
@@ -111,7 +116,9 @@ const getShipmentsWithAgent = async (page = 1, limit = 50) => {
 	try {
 		const { data: shipments, count } = await getShipments(page, limit);
 		const customerServiceList = await getAllCustomerService();
-		const enriched = enrichShipmentsWithAgentName(shipments, customerServiceList);
+		const { data: products, error: prodError } = await db.from('products').select('*');
+		if (prodError) throw prodError;
+		const enriched = enrichShipmentsWithAgentName(shipments, customerServiceList, products);
 		return { enriched, count };
 	} catch (error) {
 		console.error('Error fetching shipments with agent:', error.message);
@@ -213,7 +220,7 @@ function extractItemDetails(itemInParcel) {
 }
 
 // Helper: Enrich shipments with agent name by mapping ID CS to customer service
-function enrichShipmentsWithAgentName(shipments, customerServiceList) {
+function enrichShipmentsWithAgentName(shipments, customerServiceList, productList) {
 	// Create a map for O(1) lookup
 	const csMap = (customerServiceList || []).reduce((map, cs) => {
 		const id = String(cs['ID Customer Service'] || '').trim();
@@ -225,13 +232,50 @@ function enrichShipmentsWithAgentName(shipments, customerServiceList) {
 		return map;
 	}, {});
 
+	// Map produk berdasarkan Variant Name untuk pencarian cepat
+	const productMap = (productList || []).reduce((map, prod) => {
+		const variantName = String(prod['Variant Name'] || '').trim();
+		if (variantName) {
+			map[variantName] = prod;
+		}
+		return map;
+	}, {});
+
 	// Enrich each shipment
 	return (shipments || []).map(shipment => {
-		const idCS = extractIdCS(shipment['Item in Parcel']);
+		const details = extractItemDetails(shipment['Item in Parcel']);
+		const isDelivered = shipment['Tracking Status'] === 'Delivered';
+
+		const product = productMap[String(details.itemName || '').trim()];
+		const qty = Number(shipment['No of Item'] || 0);
+		const codAmount = Number(shipment['COD Amount'] || 0);
+		const estShippingFee = Number(shipment['Estimated Shipping Fee'] || 0);
+
+		// Inisialisasi variabel finansial (Default 0 jika status bukan Delivered)
+		let hpp = 0, totalHpp = 0, feeCod = 0, ppnSpx = 0, feeCs = 0, uangMasuk = 0;
+
+		if (isDelivered) {
+			hpp = Number(product?.['HPP'] || 0);
+			totalHpp = qty * hpp;
+			feeCod = codAmount * 0.01;           // Fee COD 1%
+			ppnSpx = estShippingFee * 0.005;     // PPN SPX 0,5%
+			feeCs = 5000;                        // Fee CS flat per resi
+			uangMasuk = codAmount - totalHpp - feeCod - ppnSpx - feeCs;
+		}
+
 		return {
 			...shipment,
-			_idCS: idCS,
-			_agentName: idCS && csMap[idCS] ? csMap[idCS] : '-'
+			_idCS: details.idCS,
+			_agentName: details.idCS && csMap[details.idCS] ? csMap[details.idCS] : '-',
+			_variantName: product ? product['Variant Name'] : (details.itemName || '-'), // Variant Name dari tabel produk
+			_qty: qty,       // Qty = No of Item
+			_hpp: hpp,       // HPP dari tabel Products (hanya jika delivered)
+			_totalHpp: totalHpp,
+			_feeCod: feeCod,
+			_ppnSpx: ppnSpx,
+			_feeCs: feeCs,
+			_uangMasuk: uangMasuk,
+			'COD Amount': isDelivered ? codAmount : 0
 		};
 	});
 }

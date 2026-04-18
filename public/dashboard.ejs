@@ -35,36 +35,91 @@
         </header>
 
         <div class="p-6 flex-1">
+            <!-- Dashboard Overview -->
             <div class="mb-6">
-                <div class="flex items-center px-3 mb-2">
-                    <div class="h-px bg-gray-300 flex-1"></div>
-                    <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wider px-2">Dashboard Overview</h3>
-                    <div class="h-px bg-gray-300 flex-1"></div>
+                <div class="mb-4">
+                    <div class="flex items-center px-3 mb-2">
+                        <div class="h-px bg-gray-300 flex-1"></div>
+                        <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wider px-2">Dashboard Overview</h3>
+                        <div class="h-px bg-gray-300 flex-1"></div>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div class="bg-white rounded-3xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Shipments</p>
-                        <p class="text-3xl font-bold text-gray-900 mt-3"><%= shipments?.length || 0 %></p>
-                        <p class="text-sm text-gray-500 mt-2">Total semua pengiriman yang tercatat.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                    <!-- Total Shipments -->
+                    <div class="bg-blue-50 rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Total Shipments</p>
+                                <p class="text-2xl font-black text-blue-900 mt-1"><%= stats.totalShipments.toLocaleString('id-ID') %></p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                                    <path d="M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
+                                    <path d="M8 7V5h8v2"/>
+                                    <path d="M8 13h8"/>
+                                    <path d="M8 17h8"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
-                    <div class="bg-white rounded-3xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total COD</p>
-                        <p class="text-3xl font-bold text-green-700 mt-3">Rp<%= (shipments || []).reduce((total, item) => total + (item['COD Amount'] || 0), 0).toLocaleString('id-ID') %></p>
-                        <p class="text-sm text-gray-500 mt-2">Total nilai COD pada semua data.</p>
+
+                    <!-- Delivered Shipments -->
+                    <div class="bg-emerald-50 rounded-xl border border-emerald-100 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Delivered</p>
+                                <p class="text-2xl font-black text-emerald-900 mt-1"><%= (stats.delivered || 0).toLocaleString('id-ID') %></p>
+                            </div>
+                            <div class="bg-emerald-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            </div>
+                        </div>
                     </div>
-                    <div class="bg-white rounded-3xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Terkirim</p>
-                        <p class="text-3xl font-bold text-emerald-600 mt-3"><%= (shipments || []).filter(item => item['Tracking Status'] === 'Delivered').length %></p>
-                        <p class="text-sm text-gray-500 mt-2">Jumlah pengiriman berhasil sampai.</p>
+
+                    <!-- Total Retur -->
+                    <div class="bg-red-50 rounded-xl border border-red-100 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-red-600 uppercase tracking-wider">Total Retur</p>
+                                <p class="text-2xl font-black text-red-900 mt-1"><%= (stats.retur || 0).toLocaleString('id-ID') %></p>
+                            </div>
+                            <div class="bg-red-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                            </div>
+                        </div>
                     </div>
-                    <div class="bg-white rounded-3xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Dalam Proses</p>
-                        <p class="text-3xl font-bold text-orange-600 mt-3"><%= (shipments || []).filter(item => item['Tracking Status'] !== 'Delivered' && !item['Tracking Status']?.includes('Cancel')).length %></p>
-                        <p class="text-sm text-gray-500 mt-2">Pengiriman yang masih dalam perjalanan.</p>
+
+                    <!-- On Proses -->
+                    <div class="bg-orange-50 rounded-xl border border-orange-100 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-orange-600 uppercase tracking-wider">On Proses</p>
+                                <p class="text-2xl font-black text-orange-900 mt-1"><%= (stats.onProcess || 0).toLocaleString('id-ID') %></p>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total COD Amount -->
+                    <div class="bg-indigo-50 rounded-xl border border-indigo-100 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Total COD</p>
+                                <p class="text-xl font-black text-indigo-900 mt-1">Rp <%= (stats.totalCOD || 0).toLocaleString('id-ID') %></p>
+                            </div>
+                            <div class="bg-indigo-100 p-3 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
 
             <div class="grid gap-4 xl:grid-cols-3">
                 <div class="xl:col-span-2 bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">

@@ -6,7 +6,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // Import controllers
 const { getShipments, importExcel, getDashboard } = require('../controllers/shipmentController');
-const { getProducts, confirmInitialProducts, updateHPP } = require('../controllers/productController');
+const { getProducts, confirmInitialProducts, updateHPP, updateProductName, updateVariantCode, updateVariantName, bulkUpdateHPP } = require('../controllers/productController');
 const {
     getCustomerServices,
     createCS,
@@ -69,6 +69,10 @@ router.post('/customer-service/delete', deleteCS);
 router.get('/products', getProducts);
 router.post('/products/confirm-init', confirmInitialProducts);
 router.post('/products/update-hpp', updateHPP);
+router.post('/products/update-name', updateProductName);
+router.post('/products/update-variant-code', updateVariantCode);
+router.post('/products/update-variant-name', updateVariantName);
+router.post('/products/bulk-update-hpp', bulkUpdateHPP);
 
 // ============================================ 
 // DEBUG ROUTES
