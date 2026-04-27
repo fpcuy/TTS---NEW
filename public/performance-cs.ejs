@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body class="bg-gray-50 flex min-h-screen">
+    <%- include('partials/sidebar') %>
+    <main class="flex-1 lg:ml-64 xl:ml-72 flex flex-col">
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-indigo-100 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 leading-tight">Performa Customer Service</h1>
+                        <p class="text-xs text-gray-500">Analisis kinerja dan kalkulasi insentif agen</p>
+                    </div>
+                </div>
+                <div class="flex items-center bg-white border border-gray-300 rounded-md px-3 py-1.5 shadow-sm">
+                    <input type="text" id="dateRangePicker" placeholder="Filter Tanggal" class="text-xs font-semibold focus:outline-none w-40" value="<%= (startDate && endDate) ? startDate + ' to ' + endDate : '' %>">
+                </div>
+            </div>
+        </header>
+
+        <div class="p-6">
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-4">Nama Agen</th>
+                            <th class="px-6 py-4 text-center">Total Resi</th>
+                            <th class="px-6 py-4 text-center">Delivered</th>
+                            <th class="px-6 py-4 text-center">Success Rate</th>
+                            <th class="px-6 py-4 text-right">Estimasi Komisi</th>
+                            <th class="px-6 py-4 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <% performanceData.forEach(cs => { %>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-bold text-gray-900"><%= cs['Agent Name'] %></div>
+                                </td>
+                                <td class="px-6 py-4 text-center text-sm text-gray-600"><%= cs['Total Resi'] %></td>
+                                <td class="px-6 py-4 text-center text-sm font-bold text-emerald-600"><%= cs['Total Delivered'] %></td>
+                                <td class="px-6 py-4 text-center text-sm">
+                                    <% const rate = cs['Total Resi'] > 0 ? ((cs['Total Delivered'] / cs['Total Resi']) * 100).toFixed(1) : 0 %>
+                                    <span class="px-2 py-1 rounded-full <%= rate > 70 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700' %> font-bold text-[10px]">
+                                        <%= rate %>%
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm font-bold text-blue-600">
+                                    Rp<%= (cs['Total Delivered'] * 5000).toLocaleString('id-ID') %>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <a href="/performance-cs/salary-slip?agentName=<%= encodeURIComponent(cs['Agent Name']) %>&startDate=<%= startDate %>&endDate=<%= endDate %>" 
+                                       class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-gray-800 transition-all shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                        Slip Gaji
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        flatpickr("#dateRangePicker", {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length === 2) {
+                    const start = instance.formatDate(selectedDates[0], "Y-m-d");
+                    const end = instance.formatDate(selectedDates[1], "Y-m-d");
+                    window.location.href = `/performance-cs?startDate=${start}&endDate=${end}`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

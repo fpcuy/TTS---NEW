@@ -98,111 +98,6 @@
         </div>
 
 
-        <!-- Filter Modal (UI-only) -->
-        <div id="filterModal" class="hidden fixed z-[9999] bg-black/40 inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl border border-gray-200 shadow-xl" style="width: 520px;">
-                <!-- Header -->
-                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-slate-50 rounded-t-xl">
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
-                                <path d="M4 4h16"/>
-                                <path d="M7 12h10"/>
-                                <path d="M10 20h4"/>
-                                <path d="M5 6l7 8 7-8"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold text-gray-900">Filter Transaksi</h3>
-                            <p class="text-xs text-gray-500">Pilih rentang tanggal dan filter data</p>
-                        </div>
-                    </div>
-                    <button id="closeFilterModal" class="rounded-md border border-gray-300 px-2 py-1 text-gray-500 hover:bg-gray-100 transition-colors">✕</button>
-                </div>
-
-                <!-- Content -->
-                <div class="p-5">
-                    <!-- Quick Filters -->
-                    <div class="mb-4">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Filter Cepat</h4>
-                        <div class="flex gap-2 flex-wrap">
-                            <button type="button" class="px-3 py-1.5 text-xs font-medium bg-gray-50 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 rounded-md transition-all">7 Hari</button>
-                            <button type="button" class="px-3 py-1.5 text-xs font-medium bg-gray-50 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 rounded-md transition-all">14 Hari</button>
-                            <button type="button" class="px-3 py-1.5 text-xs font-medium bg-gray-50 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 rounded-md transition-all">30 Hari</button>
-                            <button type="button" class="px-3 py-1.5 text-xs font-medium bg-gray-50 hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-200 rounded-md transition-all">45 Hari</button>
-                        </div>
-                    </div>
-
-                    <!-- Date Range Picker -->
-                    <div class="mb-4">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Pilih Rentang Tanggal</h4>
-                        <div class="relative">
-                            <input type="text" id="dateRangePicker" placeholder="Pilih rentang tanggal..."
-                                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-400">
-                                    <path d="M8 2v4"/>
-                                    <path d="M16 2v4"/>
-                                    <rect width="18" height="18" x="3" y="4" rx="2"/>
-                                    <path d="M3 10h18"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">Klik untuk memilih rentang tanggal (maksimal 366 hari)</p>
-                    </div>
-
-                    <!-- Additional Filters -->
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Filter Tambahan</h4>
-                        <div class="grid gap-3">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Platform</label>
-                                <select class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option>Semua Platform</option>
-                                    <option>Shopee</option>
-                                    <option>Tokopedia</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-                                <select class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option>Semua Status</option>
-                                    <option>Delivered</option>
-                                    <option>In Transit</option>
-                                    <option>Cancel</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Cari Transaksi</label>
-                                <input type="text" placeholder="Masukkan kata kunci..." class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="mt-5 flex gap-3">
-                        <button class="flex-1 rounded-lg bg-blue-500 py-2.5 text-sm font-semibold text-white hover:bg-blue-600 transition-colors shadow-sm">Terapkan Filter</button>
-                        <button class="flex-1 rounded-lg border border-gray-300 bg-white py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">Reset</button>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="px-5 py-3 border-t border-gray-200 bg-gray-50 rounded-b-xl flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-xs text-gray-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M8 2v4"/>
-                            <path d="M16 2v4"/>
-                            <rect width="18" height="18" x="3" y="4" rx="2"/>
-                            <path d="M3 10h18"/>
-                        </svg>
-                        <span id="dateRangeDisplay">Belum ada tanggal dipilih</span>
-                    </div>
-                    <div class="text-[10px] text-gray-400">Maks 366 hari</div>
-                </div>
-            </div>
-        </div>
-
-
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const importBtn = document.getElementById('importBtn');
@@ -352,94 +247,13 @@
                         if (container) container.innerHTML = '';
                     });
                 }
-
-                // Filter modal controls
-                const openFilterModal = document.getElementById('openFilterModal');
-                const filterModal = document.getElementById('filterModal');
-                const closeFilterModal = document.getElementById('closeFilterModal');
-                const dateRangePicker = document.getElementById('dateRangePicker');
-                const dateRangeDisplay = document.getElementById('dateRangeDisplay');
-
-                // Initialize Flatpickr
-                let flatpickrInstance = null;
-
-                if (dateRangePicker) {
-                    flatpickrInstance = flatpickr(dateRangePicker, {
-                        mode: "range",
-                        dateFormat: "d M Y",
-                        maxDate: new Date().fp_incr(366), // Max 366 days from today
-                        minDate: new Date().fp_incr(-365), // Min 365 days ago
-                        locale: {
-                            firstDayOfWeek: 1, // Monday
-                            weekdays: {
-                                shorthand: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-                                longhand: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-                            },
-                            months: {
-                                shorthand: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-                                longhand: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-                            }
-                        },
-                        onChange: function(selectedDates, dateStr, instance) {
-                            if (selectedDates.length === 2) {
-                                const startDate = selectedDates[0];
-                                const endDate = selectedDates[1];
-                                const diffTime = Math.abs(endDate - startDate);
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-                                const startFormatted = instance.formatDate(startDate, "d M Y");
-                                const endFormatted = instance.formatDate(endDate, "d M Y");
-
-                                dateRangeDisplay.textContent = `${startFormatted} – ${endFormatted} (${diffDays} hari)`;
-                            }
-                        },
-                        onClose: function(selectedDates, dateStr, instance) {
-                            if (selectedDates.length < 2) {
-                                dateRangeDisplay.textContent = "Belum ada tanggal dipilih";
-                            }
-                        }
-                    });
-                }
-
-                if (openFilterModal && filterModal) {
-                    openFilterModal.addEventListener('click', () => filterModal.classList.remove('hidden'));
-                }
-                if (closeFilterModal && filterModal) {
-                    closeFilterModal.addEventListener('click', () => filterModal.classList.add('hidden'));
-                }
-                // Quick filter buttons
-                const quickFilterButtons = filterModal.querySelectorAll('[class*="px-3 py-1.5"]');
-                quickFilterButtons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        const days = parseInt(button.textContent.split(' ')[0]);
-                        const endDate = new Date();
-                        const startDate = new Date();
-                        startDate.setDate(endDate.getDate() - days + 1);
-
-                        if (flatpickrInstance) {
-                            flatpickrInstance.setDate([startDate, endDate]);
-
-                            const startFormatted = flatpickrInstance.formatDate(startDate, "d M Y");
-                            const endFormatted = flatpickrInstance.formatDate(endDate, "d M Y");
-
-                            dateRangeDisplay.textContent = `${startFormatted} – ${endFormatted} (${days} hari)`;
-                        }
-                    });
-                });
             });
         </script>
 
-        <!-- Stats Sync Panel + Filter Trigger -->
         <div class="bg-emerald-50 border-b border-emerald-200 px-6 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2 text-emerald-700">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>
                 <span class="text-xs font-medium">Terhubung ke Database Utama</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <button id="openFilterModal" class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16"/><path d="M7 12h10"/><path d="M10 20h4"/><path d="M5 6l7 8 7-8"/></svg>
-                    Filter
-                </button>
             </div>
         </div>
 
@@ -563,9 +377,17 @@
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tracking No</th>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Penerima</th>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Produk</th>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">ID CS</th>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Nama CS</th>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">COD</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">HPP</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Qty</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">HPP Total</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">ONGKIR</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Fee COD</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">PPN EXP</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Gudang</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Komisi CS</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Uang Masuk</th>
+                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Nama CS</th>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Status</th>
                                 <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Aksi</th>
                             </tr>
@@ -583,14 +405,40 @@
                                 <td class="px-4 py-3">
                                     <div class="text-xs text-gray-700 font-mono"><%= item['Item in Parcel'] %></div>
                                 </td>
-                                <td class="px-4 py-3">
-                                    <div class="text-xs font-semibold text-gray-700"><%= item._idCS || '-' %></div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div class="text-xs font-medium text-gray-700"><%= item._agentName %></div>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-bold text-gray-900">Rp<%= item['COD Amount']?.toLocaleString('id-ID') %></div>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <div class="text-xs font-bold text-gray-900 italic">Rp<%= item['COD Amount']?.toLocaleString('id-ID') %></div>
+                                    <div class="text-xs font-bold text-gray-900"><%= item['_HPP'] ? 'Rp' + item['_HPP'].toLocaleString('id-ID') : '-' %></div>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-semibold text-gray-900"><%= item['Qty'] || '-' %></div>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-bold text-gray-900"><%= item['HPP_Total'] ? 'Rp' + item['HPP_Total'].toLocaleString('id-ID') : '-' %></div>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-bold text-gray-900"><%= item['Ongkir'] ? 'Rp' + item['Ongkir'].toLocaleString('id-ID') : '-' %></div>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-bold text-gray-900"><%= item['_COD'] ? 'Rp' + item['_COD'].toLocaleString('id-ID') : '-' %></div>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-bold text-gray-900"><%= item['PPN'] ? 'Rp' + item['PPN'].toLocaleString('id-ID') : '-' %></div>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-bold text-gray-900"><%= item['Gudang'] ? 'Rp' + item['Gudang'].toLocaleString('id-ID') : '-' %></div>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-bold text-gray-900"><%= item['Komisi CS'] ? 'Rp' + item['Komisi CS'].toLocaleString('id-ID') : '-' %></div>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="text-xs font-bold <%= (item['Uang_Masuk'] || 0) >= 0 ? 'text-emerald-600' : 'text-red-600' %>">
+                                        <%= item['Uang_Masuk'] ? 'Rp' + item['Uang_Masuk'].toLocaleString('id-ID') : '-' %>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="text-xs font-medium text-gray-700"><%= item['Agent Name'] || '-' %></div>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <% 

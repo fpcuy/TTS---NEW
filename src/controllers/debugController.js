@@ -1,18 +1,18 @@
 const XLSX = require('xlsx');
 const fs = require('fs');
-const { fetchAndStoreProducts } = require('../models/productModel');
+const { getGlobalStatsData } = require('../models/globalModel');
 
 // Tampilan halaman debug untuk import Excel
 const getdebugImportPage = (req, res) => {
-    // ambil data dari shipmnent hanya Item In Parcel nya saja lalu distinct untuk ditampilkan di dropdown filter di debug-import.ejs
-    fetchAndStoreProducts().then((data) => {
-        //tampilin di console untuk memastikan data sudah benar sebelum dirender ke halaman debug-import.ejs
-        console.log('DEBUG: Product list for filter:', JSON.stringify(data, null, 1));
-        res.render('debug-import', { importedData: data, pageTitle: 'Debug Import', error: null });
-    }).catch((error) => {
-        console.error('Error fetching product list:', error.message);
-        res.status(500).send('Internal Server Error');
-    });
+    // data global stats untuk ditampilkan di halaman debug (jika diperlukan)
+    console.log('DEBUG: Fetching global stats for debug-import page');
+    getGlobalStatsData()        .then(stats => {
+            console.log('DEBUG: Global stats fetched successfully:', stats);
+        })
+        .catch(error => {
+            console.error('DEBUG: Error fetching global stats:', error.message);
+        });
+    res.render('debug-import', { importedData: null, pageTitle: 'Debug Import', error: null });
 };
 
 // Debug route handler

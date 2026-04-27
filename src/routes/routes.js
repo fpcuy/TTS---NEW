@@ -5,8 +5,12 @@ const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 
 // Import controllers
-const { getShipments, importExcel, getDashboard } = require('../controllers/shipmentController');
-const { getProducts, confirmInitialProducts, updateHPP, updateProductName, updateVariantCode, updateVariantName, bulkUpdateHPP } = require('../controllers/productController');
+const { 
+    getShipments, 
+    importExcel, 
+    getDashboard, 
+    getCSProductLeaderboard,
+} = require('../controllers/shipmentController');
 const {
     getCustomerServices,
     createCS,
@@ -14,7 +18,9 @@ const {
     deleteCS,
     getEditForm,
 } = require('../controllers/customerServiceController');
+const { getProduct, getUnmappedProductsView, updateProductMapping, updateHPP, updateProductFieldController, createProduct, editProduct, removeProduct } = require('../controllers/productController');
 const { getdebugImportPage, debugImport } = require('../controllers/debugController');
+const { getPerformancePage, getSalarySlip } = require('../controllers/performanceController');
 
 // ============================================
 // AUTH ROUTES
@@ -51,6 +57,13 @@ router.get('/logout', (req, res) => {
 router.get('/', getShipments);
 router.get('/dashboard', getDashboard);
 router.post('/shipments/import', upload.single('excelFile'), importExcel);
+router.get('/api/cs-products', getCSProductLeaderboard);
+
+// ============================================
+// PERFORMANCE & SALARY ROUTES
+// ============================================
+router.get('/performance-cs', getPerformancePage);
+router.get('/performance-cs/salary-slip', getSalarySlip);
 
 // ============================================
 // CUSTOMER SERVICE ROUTES
@@ -62,22 +75,27 @@ router.get('/customer-service/edit/:id', getEditForm);
 router.post('/customer-service/update', updateCS);
 router.post('/customer-service/delete', deleteCS);
 
-// ============================================
-// PRODUCT ROUTES
-// ============================================ 
-
-router.get('/products', getProducts);
-router.post('/products/confirm-init', confirmInitialProducts);
-router.post('/products/update-hpp', updateHPP);
-router.post('/products/update-name', updateProductName);
-router.post('/products/update-variant-code', updateVariantCode);
-router.post('/products/update-variant-name', updateVariantName);
-router.post('/products/bulk-update-hpp', bulkUpdateHPP);
-
 // ============================================ 
 // DEBUG ROUTES
 // ============================================
 router.get('/import-debug', getdebugImportPage);
 router.post('/import-debug', upload.single('excelFile'), debugImport);
+
+// ============================================
+// PRODUCT ROUTES
+// ============================================
+
+router.get('/products', getProduct);
+router.get('/unmapped-products', getUnmappedProductsView);
+// Update mapping produk massal dengan 2 parameter: extractedItem dan productId
+router.post('/mass-update-product', updateProductMapping);
+// Update HPP product
+router.post('/update-hpp', updateHPP);
+// Update product field (inline editing)
+router.post('/update-product-field', updateProductFieldController);
+// CRUD operations untuk produk
+router.post('/products/create', createProduct);
+router.post('/products/update', editProduct);
+router.post('/products/delete', removeProduct);
 
 module.exports = router;

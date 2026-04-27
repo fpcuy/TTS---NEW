@@ -1,7 +1,8 @@
 const db = require('../config/database');
 const XLSX = require('xlsx');
 const fs = require('fs');
-const { getShipmentsWithAgent, insertShipments, getGlobalStats } = require('../models/shipmentModel');
+const { getGlobalStatsData, getBreakdownCS, getBreakdownProduct, getBreakdownProductByCS } = require('../models/globalModel');
+const { getShipmentsWithAgent, insertShipments, getGlobalStats} = require('../models/shipmentModel');
 const { cleanAndFormatData } = require('../utils/formatters');
 
 // Import Excel handler
@@ -58,7 +59,7 @@ const getShipments = async (req, res) => {
 
     // Log data yang akan ditampilkan di dashboard
     console.log('Stats:', stats);
-    
+
     res.render('index', { 
       shipments, 
       stats,
@@ -77,13 +78,51 @@ const getShipments = async (req, res) => {
 
 const getDashboard = async (req, res) => {
   try {
-    const { enriched: shipments } = await getShipmentsWithAgent(1, 10);
-    const stats = await getGlobalStats();
-    res.render('dashboard', { shipments, stats, pageTitle: 'Dashboard' });
+    const stats = await getGlobalStatsData();
+    const rawCSData = await getBreakdownCS();
+    const productLeaderboard = await getBreakdownProduct();
+
+    // Mengelompokkan data berdasarkan Agent Name untuk fitur dropdown
+    const groupedCS = rawCSData.reduce((acc, item) => {
+      const name = item['Agent Name'] || 'Tanpa Nama';
+      if (!acc[name]) {
+        acc[name] = {
+          agentName: name,
+          totalResi: 0,
+          totalDelivered: 0,
+          totalUangMasuk: 0,
+          products: []
+        };
+      }
+      acc[name].totalResi += parseInt(item['Total Resi'] || 0);
+      acc[name].totalDelivered += parseInt(item['Total Delivered'] || 0);
+      acc[name].totalUangMasuk += parseFloat(item['Uang Masuk'] || 0);
+      acc[name].products.push(item);
+      return acc;
+    }, {});
+
+    const csLeaderboard = Object.values(groupedCS).sort((a, b) => b.totalUangMasuk - a.totalUangMasuk);
+
+    res.render('dashboard', { 
+      stats,
+      csLeaderboard,
+      productLeaderboard, 
+      pageTitle: 'Dashboard' 
+    });
   } catch (error) {
     console.error('Error fetching dashboard data:', error.message);
     res.status(500).send('Internal Server Error');
   }
 };
 
-module.exports = { getShipments, importExcel, getDashboard };
+const getCSProductLeaderboard = async (req, res) => {
+  try {
+    const { agentName } = req.query;
+    const products = await getBreakdownProductByCS(agentName);
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { getShipments, importExcel, getDashboard, getCSProductLeaderboard };

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head') %>
+    <title><%= pageTitle %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tom Select CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        /* Tailwind-inspired Tom Select Styling */
+        .ts-wrapper {
+            width: 100%;
+        }
+        .ts-control {
+            @apply block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-all duration-200;
+        }
+        .ts-control:hover {
+            @apply border-gray-400;
+        }
+        .ts-control.focus,
+        .ts-control.input-active {
+            @apply border-orange-500 ring-2 ring-orange-200;
+        }
+        .ts-control input {
+            @apply text-sm text-gray-900 placeholder-gray-400;
+        }
+        .ts-dropdown {
+            @apply absolute z-50 mt-2 w-full rounded-lg border border-gray-200 bg-white shadow-lg;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .ts-dropdown [role="option"] {
+            @apply px-4 py-3 text-sm text-gray-700 cursor-pointer border-b border-gray-100 hover:bg-orange-50 hover:text-orange-900 transition-colors;
+        }
+        .ts-dropdown [role="option"]:last-child {
+            @apply border-b-0;
+        }
+        .ts-dropdown [role="option"].active,
+        .ts-dropdown [role="option"].selected {
+            @apply bg-orange-100 text-orange-900;
+        }
+        .ts-item {
+            @apply inline-flex items-center gap-1.5 px-2 py-1 bg-orange-100 text-orange-900 border border-orange-300 rounded text-sm font-medium;
+        }
+        .ts-item .remove {
+            @apply cursor-pointer text-orange-700 font-bold hover:text-orange-900 ml-1;
+        }
+        /* Scrollbar */
+        .ts-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+        .ts-dropdown::-webkit-scrollbar-track {
+            @apply bg-gray-100 rounded;
+        }
+        .ts-dropdown::-webkit-scrollbar-thumb {
+            @apply bg-gray-300 rounded hover:bg-gray-400;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex min-h-screen">
+    <%- include('partials/sidebar') %>
+
+    <main class="flex-1 lg:ml-64 xl:ml-72 flex flex-col">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-orange-100 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 leading-tight"><%= pageTitle %></h1>
+                        <p class="text-xs text-gray-500">Pemetaan massal item berdasarkan regex ekstraksi</p>
+                    </div>
+                </div>
+                <a href="/" class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    Dashboard
+                </a>
+            </div>
+        </header>
+
+        <div class="p-6 flex-1">
+            <!-- Feedback Messages -->
+            <% if (success) { %>
+                <div class="mb-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 animate-in fade-in duration-300 shadow-sm">
+                    <div class="bg-emerald-100 p-2 rounded-full text-emerald-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+                    </div>
+                    <p class="text-sm font-semibold text-emerald-800"><%= success %></p>
+                </div>
+            <% } %>
+
+            <% if (error) { %>
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 shadow-sm">
+                    <div class="bg-red-100 p-2 rounded-full text-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <p class="text-sm font-semibold text-red-800"><%= error %></p>
+                </div>
+            <% } %>
+
+            <!-- Main Content Card -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-slate-50/50">
+                    <div>
+                        <h2 class="text-sm font-bold text-gray-900">Item Belum Terpetakan</h2>
+                        <p class="text-[11px] text-gray-500 mt-0.5">Ditemukan <%= unmappedItems.length %> kelompok item unik yang butuh ID Product</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50/50 border-b border-gray-200">
+                                <th class="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Extracted Item Name</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Total Resi</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Aksi Mapping</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-xs">
+                            <% if (unmappedItems.length > 0) { %>
+                                <% unmappedItems.forEach(item => { %>
+                                    <tr class="hover:bg-orange-50/30 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <span class="font-mono font-bold text-gray-700 bg-gray-100 px-3 py-2 rounded-lg border border-gray-200 text-xs"><%= item.extracted_item %></span>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full font-bold border border-blue-200 text-xs"><%= item.total_rows %> baris</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <form action="/mass-update-product" method="POST" class="flex items-center justify-end gap-3" onsubmit="return validateProductForm(event)">
+                                                <input type="hidden" name="extractedItem" value="<%= item.extracted_item %>">
+                                                <select name="productId" class="product-select min-w-96 h-10" placeholder="🔍 Cari Produk Master..." required>
+                                                    <option value="">-- Pilih Produk Master --</option>
+                                                    <% products.forEach(prod => { %>
+                                                        <option value="<%= prod['ID Product'] %>">
+                                                            [<%= prod['ID Product'] %>] <%= prod['Product Name'] %> - <%= prod['Variant Name'] %>
+                                                        </option>
+                                                    <% }) %>
+                                                </select>
+                                                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-lg transition-all shadow-sm active:scale-95 whitespace-nowrap flex items-center gap-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                                                    Update All
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="3" class="text-center py-20 text-gray-400 font-medium">Semua item sudah terpetakan dengan benar.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tom Select JS (dimuat secara dinamis untuk memastikan urutan loading)
+        const tomSelectScript = document.createElement('script');
+        tomSelectScript.src = "https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js";
+        document.head.appendChild(tomSelectScript);
+
+        tomSelectScript.onload = function() {
+            document.querySelectorAll('.product-select').forEach((el) => {
+                new TomSelect(el, {
+                    create: false,
+                    clearButton: true,
+                    placeholder: '🔍 Cari Produk Master...',
+                    searchField: ['text'],
+                    sortField: {
+                        field: "text",
+                        direction: "asc"
+                    },
+                    maxOptions: 500,
+                    maxItems: 1,
+                    openOnFocus: true,
+                    allowEmptyOption: false,
+                    // Render option dengan info yang lebih rapi
+                    render: {
+                        option: function(data, escape) {
+                            return `
+                                <div class="flex flex-col py-2 px-3 hover:bg-orange-50">
+                                    <span class="font-semibold text-gray-900 text-sm">${escape(data.text.split(']')[1]?.trim() || data.text)}</span>
+                                    <span class="text-xs text-gray-500">${escape(data.text.split('[')[1]?.split(']')[0] || '')}</span>
+                                </div>
+                            `;
+                        },
+                        item: function(data, escape) {
+                            return `<div class="flex items-center gap-2">${escape(data.text)}</div>`;
+                        },
+                        no_results: function(data, escape) {
+                            return '<div class="p-4 text-center text-gray-500 text-sm">Produk tidak ditemukan. Coba kata kunci lain.</div>';
+                        },
+                        no_options: function(data, escape) {
+                            return '<div class="p-4 text-center text-gray-500 text-sm">Tidak ada produk tersedia</div>';
+                        }
+                    }
+                });
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+        });
+
+        function validateProductForm(event) {
+            const productSelect = event.target.querySelector('select[name="productId"]');
+            const selectedValue = productSelect.value.trim();
+            
+            if (!selectedValue) {
+                alert('Silakan pilih produk master terlebih dahulu sebelum melakukan update');
+                productSelect.focus();
+                event.preventDefault();
+                return false;
+            }
+            
+            return true;
+        }
+    </script>
+</body>
+</html>

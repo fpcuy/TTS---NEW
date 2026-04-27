@@ -12,6 +12,40 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!-- SheetJS for Client-side Preview -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        .hpp-input {
+            width: 100%;
+            border: 2px solid #ff9800;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 14px;
+        }
+        .hpp-display {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .hpp-display:hover {
+            background-color: #fff3e0;
+        }
+        .text-input {
+            width: 100%;
+            border: 2px solid #ff9800;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 14px;
+        }
+        .text-display {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .text-display:hover {
+            background-color: #fff3e0;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 flex min-h-screen">
     <%- include('partials/sidebar') %>
@@ -19,456 +53,274 @@
     <!-- Main Content -->
     <main class="flex-1 lg:ml-64 xl:ml-72 flex flex-col">
         <!-- Header -->
-        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4">
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4 shadow-sm">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-primary-50 p-2 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
-                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                            <path d="M3 6h18"/>
-                            <path d="M16 10a4 4 0 0 1-8 0"/>
-                        </svg>
+                    <div class="bg-orange-100 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-gray-900 leading-tight"><%= pageTitle %></h1>
-                        <p class="text-xs text-gray-500">Manajemen data produk</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Daftar produk yang sudah terpetakan dengan ID Product</p>
                     </div>
                 </div>
-                <!-- Search Bar -->
-                <form action="/products" method="GET" class="flex-1 max-w-md">
-                    <div class="relative">
-                        <input type="text" name="search" value="<%= locals.search || '' %>" placeholder="Cari nama, varian, atau kode..." class="w-full bg-gray-50 border border-gray-300 rounded-lg py-2 px-4 pl-10 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:outline-none text-sm transition-all">
-                        <div class="absolute left-3 top-2.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                        </div>
-                    </div>
-                </form>
+                <div class="flex items-center space-x-3">
+                    <button onclick="openAddModal()" class="inline-flex items-center gap-2 rounded-md bg-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-700 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        Tambah Produk
+                    </button>
+                    <a href="/" class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                        Dashboard
+                    </a>
+                </div>
             </div>
         </header>
-
-        <!-- Main Table Container -->
         <div class="p-6 flex-1">
-            <!-- Tabel Ringkasan Variant Code (Bulk HPP Edit) -->
-            <% if (locals.variantSummary && variantSummary.length > 0) { %>
-            <div class="mb-8 bg-white shadow-sm border border-indigo-100 rounded-xl overflow-hidden">
-                <div onclick="toggleBulkEdit()" class="cursor-pointer bg-indigo-50/50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between hover:bg-indigo-100/50 transition-colors">
-                    <h3 class="text-sm font-bold text-indigo-900 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4-4-4"></path><path d="M4 14V4a2 2 0 0 1 2-2h10l4 4v10a2 2 0 0 1-2 2h-1"></path><path d="M11 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path></svg>
-                        Bulk Edit HPP by Variant Code
-                    </h3>
-                    <div class="flex items-center gap-3">
-                        <span class="text-[10px] font-bold text-indigo-500 bg-indigo-100 px-2 py-0.5 rounded-full uppercase">Mass Update Mode</span>
-                        <svg id="bulkToggleIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo-600 transition-transform duration-200"><path d="m6 9 6 6 6-6"/></svg>
+            <!-- Success/Error Messages -->
+            <% if (typeof success !== 'undefined' && success) { %>
+                <div class="mb-4 bg-green-50 border border-green-200 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-green-800"><%= success %></p>
+                        </div>
                     </div>
                 </div>
-                <div id="bulkEditContent" class="overflow-x-auto">
+            <% } %>
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-red-800"><%= error %></p>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Main Content Card -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-slate-50/50">
+                    <div>
+                        <h2 class="text-sm font-bold text-gray-900">Produk Terpetakan</h2>
+                        <p class="text-[11px] text-gray-500 mt-0.5">Ditemukan <%= products.length %> produk yang sudah terpetakan dengan ID Product</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50 border-b border-gray-100 text-[10px] uppercase font-bold text-gray-500">
-                            <tr>
-                                <th class="px-4 py-2">Variant Code</th>
-                                <th class="px-4 py-2">Total Produk</th>
-                                <th class="px-4 py-2 text-right">Set New HPP</th>
+                        <thead>
+                            <tr class="bg-gray-50/50 border-b border-gray-200">
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID Product</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Variant Name</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product Name</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">HPP</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <% variantSummary.forEach(item => { %>
-                            <tr class="hover:bg-indigo-50/30 transition-colors">
-                                <td class="px-4 py-2 text-xs font-mono font-bold text-indigo-600"><%= item.code %></td>
-                                <td class="px-4 py-2 text-xs text-gray-500"><%= item.count %> Item</td>
-                                <td class="px-4 py-2 text-right">
-                                    <div class="flex items-center justify-end space-x-2 group/bulk">
-                                        <span class="text-[10px] font-bold text-gray-300">Rp</span>
-                                        <input type="number" 
-                                               placeholder="<%= item.currentHPP %>"
-                                               class="bulk-hpp-input w-24 bg-white border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none text-right text-xs font-bold text-gray-900 rounded px-2 py-1 transition-all"
-                                               data-code="<%= item.code %>"
-                                               onkeydown="if(event.ctrlKey && event.key === 'Enter') submitBulkHPPUpdate(this.nextElementSibling)">
-                                        <button onclick="submitBulkHPPUpdate(this)" class="p-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-all opacity-0 group-hover/bulk:opacity-100 shadow-sm" title="Apply to all items">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <% }) %>
+                        <tbody class="divide-y divide-gray-200" id="productsTableBody">
+                            <% products.forEach((product, index) => { %>
+                                <tr class="hover:bg-gray-100" data-product-id="<%= product['ID Product'].replace(/"/g, '&quot;') %>">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono"><%= product['ID Product'] %></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div class="text-display" data-field="variantName" onclick="editTextField(this)">
+                                            <span class="text-value"><%= product['Variant Name'] %></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div class="text-display" data-field="productName" onclick="editTextField(this)">
+                                            <span class="text-value"><%= product['Product Name'] %></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div class="hpp-display" onclick="editHPP(this)">
+                                            Rp <span class="hpp-value"><%= product['HPP'].toLocaleString('id-ID') %></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div class="flex items-center space-x-2">
+                                            <button onclick="deleteProduct('<%= product['ID Product'].replace(/'/g, "\\'") %>', '<%= product['Product Name'].replace(/'/g, "\\'") %>')" class="text-red-600 hover:text-red-900 p-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <% } %>
-
-            <!-- Alert Produk Baru Ditemukan -->
-            <% if (locals.previewData && previewData.length > 0) { %>
-            <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between shadow-sm animate-pulse">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-amber-100 p-2 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    </div>
-                    <p class="text-sm font-medium text-amber-800">Ditemukan <strong><%= previewData.length %></strong> produk baru dari data pengiriman yang belum terdaftar.</p>
-                </div>
-                <button onclick="document.getElementById('syncModal').classList.remove('hidden')" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition-colors">Tampilkan Produk</button>
-            </div>
-            <% } %>
-
-            <div class="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden">
-                <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
-                    <table class="w-full text-left border-collapse min-w-[800px]">
-                        <thead class="bg-gray-50 border-b-2 border-gray-100">
-                            <tr>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Nama Produk</th>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Nama Varian</th>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Variant Code</th>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">HPP</th>
-                                <th class="px-4 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <% if (products && products.length > 0) { %>
-                                <% products.forEach(product => { %>
-                                <tr class="hover:bg-gray-50/80 transition-colors group">
-                                    <td class="px-4 py-3">
-                                        <div class="flex items-center space-x-1 group/name">
-                                            <input type="text" 
-                                                   value="<%= product['Product Name'] %>" 
-                                                   class="name-input w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none text-xs font-bold text-gray-800 transition-all p-1"
-                                                   data-id="<%= product['ID Product'] %>"
-                                                   onkeydown="if(event.ctrlKey && event.key === 'Enter') submitNameUpdate(this.nextElementSibling)">
-                                            <button onclick="submitNameUpdate(this)" 
-                                                    class="p-1 text-emerald-600 hover:bg-emerald-50 rounded opacity-0 group-hover/name:opacity-100 transition-all"
-                                                    title="Simpan Nama">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div class="text-xs font-semibold text-gray-700"><%= product['Variant Name'] %></div>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div class="flex items-center space-x-1 group/code">
-                                            <input type="text" 
-                                                   value="<%= product['Variant Code'] || '' %>" 
-                                                   class="variant-code-input w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none text-xs font-bold text-gray-800 transition-all p-1"
-                                                   data-id="<%= product['ID Product'] %>"
-                                                   onkeydown="if(event.ctrlKey && event.key === 'Enter') submitVariantCodeUpdate(this.nextElementSibling)">
-                                            <button onclick="submitVariantCodeUpdate(this)" 
-                                                    class="p-1 text-emerald-600 hover:bg-emerald-50 rounded opacity-0 group-hover/code:opacity-100 transition-all"
-                                                    title="Simpan Code">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                        <div class="flex items-center justify-end space-x-1 group/hpp">
-                                            <span class="text-[10px] font-bold text-gray-400 mr-1">Rp</span>
-                                            <input type="number" 
-                                                   value="<%= product['HPP'] || 0 %>" 
-                                                   class="hpp-input w-20 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none text-right text-xs font-bold text-gray-900 transition-all p-1"
-                                                   data-id="<%= product['ID Product'] %>"
-                                                   onkeydown="if(event.key === 'Enter') { event.preventDefault(); submitHPPUpdate(this.nextElementSibling); focusNext(this, '.hpp-input'); }">
-                                            <button onclick="submitHPPUpdate(this)" 
-                                                    class="p-1 text-emerald-600 hover:bg-emerald-50 rounded opacity-0 group-hover/hpp:opacity-100 transition-all"
-                                                    title="Simpan HPP">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div class="flex items-center justify-center space-x-2">
-                                            <button class="text-gray-400 hover:text-blue-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                                            <button class="text-gray-400 hover:text-red-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <% }) %>
-                            <% } else { %>
-                                <tr>
-                                    <td colspan="5" class="text-center py-10 text-gray-500 text-sm">Tidak ada data produk yang ditemukan.</td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Pagination -->
-            <div class="mt-6 flex items-center justify-between bg-white px-4 py-3 border border-gray-200 rounded-xl shadow-sm">
-                <div class="flex flex-1 justify-between sm:hidden">
-                    <a href="?page=<%= currentPage - 1 %>&search=<%= search %>" class="<%= currentPage <= 1 ? 'pointer-events-none opacity-50' : '' %> relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
-                    <a href="?page=<%= currentPage + 1 %>&search=<%= search %>" class="<%= currentPage >= totalPages ? 'pointer-events-none opacity-50' : '' %> relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
-                </div>
-                <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm text-gray-700">
-                            Menampilkan <span class="font-medium"><%= (currentPage - 1) * currentLimit + 1 %></span> sampai <span class="font-medium"><%= Math.min(currentPage * currentLimit, totalItems) %></span> dari <span class="font-medium"><%= totalItems %></span> produk
-                        </p>
-                    </div>
-                    <div>
-                        <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                            <% for(let i = 1; i <= totalPages; i++) { %>
-                                <% if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) { %>
-                                    <a href="?page=<%= i %>&search=<%= search %>&limit=<%= currentLimit %>" 
-                                       class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <%= i === currentPage ? 'z-10 bg-orange-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0' %>">
-                                        <%= i %>
-                                    </a>
-                                <% } else if (i === currentPage - 3 || i === currentPage + 3) { %>
-                                    <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
-                                <% } %>
-                            <% } %>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-
-            <%- include('partials/footer') %>
         </div>
 
-        <!-- Modal Konfirmasi Inisialisasi Produk -->
-        <% if (locals.previewData && previewData.length > 0) { %>
-        <div id="syncModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
-            <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
-                <div class="p-6 border-b border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-900">Inisialisasi Produk Baru</h3>
-                    <p class="text-sm text-gray-500 mt-1">Kami menemukan data produk unik dari riwayat pengiriman. Apakah Anda ingin menambahkannya ke daftar produk?</p>
-                </div>
-                
-                <div class="flex-1 overflow-y-auto p-6">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-gray-50 sticky top-0">
-                            <tr>
-                                <th class="px-2 py-2 font-bold text-gray-600">Variant Name (Dari Shipment)</th>
-                                <th class="px-2 py-2 font-bold text-gray-600">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <% previewData.forEach(item => { %>
-                            <tr>
-                                <td class="px-2 py-2 text-gray-700 font-medium"><%= item['Variant Name'] %></td>
-                                <td class="px-2 py-2 text-gray-400 italic">Baru</td>
-                            </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="p-6 border-t border-gray-100 flex justify-end space-x-3 bg-gray-50 rounded-b-xl">
-                    <button onclick="document.getElementById('syncModal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
-                        Batal
-                    </button>
-                    <form action="/products/confirm-init" method="POST">
-                        <input type="hidden" name="productData" value='<%= JSON.stringify(previewData) %>'>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-sm transition-all">
-                            Ya, Simpan Semua
+        <!-- Add Product Modal -->
+        <div id="addModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Tambah Produk Baru</h3>
+                        <button onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
                         </button>
+                    </div>
+                    <form id="addProductForm" action="/products/create" method="POST" class="space-y-4">
+                        <div>
+                            <label for="addVariantName" class="block text-sm font-medium text-gray-700">Variant Name</label>
+                            <input type="text" id="addVariantName" name="variantName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label for="addProductName" class="block text-sm font-medium text-gray-700">Product Name</label>
+                            <input type="text" id="addProductName" name="productName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label for="addHpp" class="block text-sm font-medium text-gray-700">HPP</label>
+                            <input type="number" id="addHpp" name="hpp" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div class="flex justify-end space-x-3 pt-4">
+                            <button type="button" onclick="closeAddModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-orange-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-orange-700">Tambah</button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
-        <% } %>
-    </main>
 
     <script>
-        // Fungsi untuk Minimize/Expand Bulk Edit
-        function toggleBulkEdit() {
-            const content = document.getElementById('bulkEditContent');
-            const icon = document.getElementById('bulkToggleIcon');
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                content.classList.add('hidden');
-                icon.style.transform = 'rotate(-90deg)';
-            }
+        function openAddModal() {
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
         }
 
-        // Fungsi pembantu untuk memindahkan fokus ke baris berikutnya
-        function focusNext(el, selector) {
-            const currentRow = el.closest('tr');
-            const nextRow = currentRow.nextElementSibling;
-            if (nextRow) {
-                const nextInput = nextRow.querySelector(selector);
-                if (nextInput) {
-                    nextInput.focus();
-                    if (nextInput.select) nextInput.select();
+        // Generic function for editing text fields (Variant, Product Name)
+        function editTextField(element) {
+            if (element.querySelector('input')) return;
+
+            const valueSpan = element.querySelector('.text-value');
+            const currentValue = valueSpan.innerText;
+            const field = element.dataset.field;
+            const row = element.closest('tr');
+            const productId = row.dataset.productId;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentValue;
+            input.className = 'text-input';
+            
+            element.innerHTML = '';
+            element.appendChild(input);
+            input.focus();
+
+            const save = async () => {
+                const newValue = input.value.trim();
+                if (!newValue || newValue === currentValue) {
+                    element.innerHTML = `<span class="text-value">${currentValue}</span>`;
+                    return;
                 }
-            }
+
+                try {
+                    const response = await fetch('/update-product-field', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, field, newValue })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        element.innerHTML = `<span class="text-value">${newValue}</span>`;
+                    } else {
+                        alert('Gagal: ' + result.message);
+                        element.innerHTML = `<span class="text-value">${currentValue}</span>`;
+                    }
+                } catch (error) {
+                    element.innerHTML = `<span class="text-value">${currentValue}</span>`;
+                }
+            };
+
+            input.onblur = save;
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') save();
+                if (e.key === 'Escape') element.innerHTML = `<span class="text-value">${currentValue}</span>`;
+            };
         }
 
-        async function submitHPPUpdate(btn) {
-            const container = btn.closest('div');
-            const input = container.querySelector('.hpp-input');
-            const id = input.getAttribute('data-id');
-            const hpp = input.value;
-            
-            // Beri efek visual loading
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            input.classList.add('bg-gray-100');
-            
-            try {
-                const response = await fetch('/products/update-hpp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, hpp })
-                });
+        // Function for editing HPP
+        function editHPP(element) {
+            if (element.querySelector('input')) return;
 
-                if (!response.ok) throw new Error('Gagal update');
-                
-                // Efek sukses (flash hijau sebentar)
-                input.classList.add('text-green-600');
-                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                
-                setTimeout(() => {
-                    input.classList.remove('text-green-600');
-                }, 2000);
-            } catch (err) {
-                alert('Gagal memperbarui HPP: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-                input.classList.remove('bg-gray-100');
-            }
+            const valueSpan = element.querySelector('.hpp-value');
+            const currentValue = valueSpan.innerText.replace(/\./g, '');
+            const row = element.closest('tr');
+            const productId = row.dataset.productId;
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = currentValue;
+            input.className = 'hpp-input';
+            
+            element.innerHTML = '';
+            element.appendChild(input);
+            input.focus();
+
+            const save = async () => {
+                const newValue = input.value;
+                if (!newValue || newValue === currentValue) {
+                    element.innerHTML = `Rp <span class="hpp-value">${parseInt(currentValue).toLocaleString('id-ID')}</span>`;
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/update-product-field', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, field: 'hpp', newValue })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        element.innerHTML = `Rp <span class="hpp-value">${parseInt(newValue).toLocaleString('id-ID')}</span>`;
+                    } else {
+                        alert('Gagal: ' + result.message);
+                        element.innerHTML = `Rp <span class="hpp-value">${parseInt(currentValue).toLocaleString('id-ID')}</span>`;
+                    }
+                } catch (error) {
+                    element.innerHTML = `Rp <span class="hpp-value">${parseInt(currentValue).toLocaleString('id-ID')}</span>`;
+                }
+            };
+
+            input.onblur = save;
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') save();
+                if (e.key === 'Escape') element.innerHTML = `Rp <span class="hpp-value">${parseInt(currentValue).toLocaleString('id-ID')}</span>`;
+            };
         }
 
-        async function submitNameUpdate(btn) {
-            const container = btn.closest('div');
-            const input = container.querySelector('.name-input');
-            const id = input.getAttribute('data-id');
-            const name = input.value;
-            
-            // Beri efek visual loading
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            input.classList.add('bg-gray-100');
-            
-            try {
-                const response = await fetch('/products/update-name', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, name })
-                });
-
-                if (!response.ok) throw new Error('Gagal update');
+        async function deleteProduct(productId, productName) {
+            if (confirm(`Hapus produk "${productName}"?`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/products/delete';
                 
-                // Efek sukses (flash hijau sebentar)
-                input.classList.add('text-green-600');
-                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'productId';
+                input.value = productId;
                 
-                setTimeout(() => {
-                    input.classList.remove('text-green-600');
-                }, 2000);
-            } catch (err) {
-                alert('Gagal memperbarui Nama Produk: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-                input.classList.remove('bg-gray-100');
-            }
-        }
-
-        async function submitVariantNameUpdate(btn) {
-            const container = btn.closest('div');
-            const input = container.querySelector('.variant-name-input');
-            const id = input.getAttribute('data-id');
-            const variantName = input.value;
-            
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            input.classList.add('bg-gray-100');
-            
-            try {
-                const response = await fetch('/products/update-variant-name', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, variantName })
-                });
-
-                if (!response.ok) throw new Error('Gagal update');
-                
-                input.classList.add('text-green-600');
-                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                
-                setTimeout(() => {
-                    input.classList.remove('text-green-600');
-                }, 2000);
-            } catch (err) {
-                alert('Gagal memperbarui Nama Varian: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-                input.classList.remove('bg-gray-100');
-            }
-        }
-
-        async function submitBulkHPPUpdate(btn) {
-            const container = btn.closest('div');
-            const input = container.querySelector('.bulk-hpp-input');
-            const code = input.getAttribute('data-code');
-            const hpp = input.value;
-
-            if (!hpp || hpp === "") {
-                alert('Silahkan masukkan nilai HPP baru');
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            
-            try {
-                const response = await fetch('/products/bulk-update-hpp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ variantCode: code, hpp: hpp })
-                });
-
-                if (!response.ok) throw new Error('Gagal update massal');
-                
-                // Sukses
-                input.classList.add('bg-green-50', 'border-green-300');
-                btn.classList.replace('bg-indigo-600', 'bg-green-600');
-                
-                setTimeout(() => {
-                    // Reload halaman agar tabel utama terupdate
-                    window.location.reload();
-                }, 800);
-            } catch (err) {
-                alert('Gagal memperbarui HPP secara massal: ' + err.message);
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-            }
-        }
-
-        async function submitVariantCodeUpdate(btn) {
-            const container = btn.closest('div');
-            const input = container.querySelector('.variant-code-input');
-            const id = input.getAttribute('data-id');
-            const code = input.value;
-            
-            // Beri efek visual loading
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            input.classList.add('bg-gray-100');
-            
-            try {
-                const response = await fetch('/products/update-variant-code', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, code })
-                });
-
-                if (!response.ok) throw new Error('Gagal update');
-                
-                // Efek sukses (flash hijau sebentar)
-                input.classList.add('text-green-600');
-                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                
-                setTimeout(() => {
-                    input.classList.remove('text-green-600');
-                }, 2000);
-            } catch (err) {
-                alert('Gagal memperbarui Variant Code: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-                input.classList.remove('bg-gray-100');
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
             }
         }
     </script>

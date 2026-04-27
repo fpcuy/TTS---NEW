@@ -45,6 +45,42 @@ function cleanAndFormatData(rows) {
 	});
 }
 
+/**
+ * Helper: Ekstrak detail item (name, id, code) dari field 'Item in Parcel'
+ */
+function extractItemDetails(itemInParcel) {
+	if (!itemInParcel) return {
+		itemName: '',
+		idCS: null,
+		code: ''
+	};
+	
+	const itemText = String(itemInParcel);
+	const lastParenIndex = itemText.lastIndexOf('(');
+	
+	if (lastParenIndex !== -1 && itemText.endsWith(')')) {
+		const itemName = itemText.substring(0, lastParenIndex).trim();
+		const code = itemText.substring(lastParenIndex);
+		const idCS = code.slice(1, -1); // hapus ( dan )
+		
+		// Validasi bahwa idCS hanya berisi angka
+		if (/^\d+$/.test(idCS)) {
+			return {
+				itemName,
+				idCS,
+				code
+			};
+		}
+	}
+	
+	return {
+		itemName: itemText,
+		idCS: null,
+		code: ''
+	};
+}
+
 module.exports = {
 	cleanAndFormatData,
+	extractItemDetails
 };
